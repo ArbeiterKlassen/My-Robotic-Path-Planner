@@ -147,9 +147,9 @@ return;
 ````
 # 示例截图
 1.一般结果
-![一般结果](https://uy.wzznft.com/i/2025/07/02/gpxcnk.png)
+![一般结果](https://readme-img.soyorin.work/robotic-path-planner-1.png)
 2.添加墙后
-![添加墙后](https://uy.wzznft.com/i/2025/07/02/gpxeqs.png)
+![添加墙后](https://readme-img.soyorin.work/robotic-path-planner-2.png)
 # 未来优化
 - 基于启发式搜索，GA，剪枝，模拟退火等思路对算法效率进一步优化
 - 考虑有单向路“悬崖”的情况，借用哈密顿图/欧拉图进行处理
