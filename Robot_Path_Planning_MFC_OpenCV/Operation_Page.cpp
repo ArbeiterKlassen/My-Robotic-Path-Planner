@@ -5,26 +5,30 @@
 #include "Robot_Path_Planning_MFC_OpenCV.h"
 #include "afxdialogex.h"
 #include "Operation_Page.h"
-#include <opencv2/opencv.hpp>
+#include"GP.h"
+#include"WinINet_Downloader.h"
+#include<opencv2/highgui/highgui_c.h>
+#include<queue>
+#include<random>
+#include<ctime>
+#include<opencv2/opencv.hpp>
 #include<stdio.h>
 #include<string>
 #include<iostream>
 #include<fstream>
-#include <opencv2/highgui/highgui_c.h>
-#include<queue>
-#include"GP.h"
-#include"WinINet_Downloader.h"
-#include<random>
+#include<deque>
 
-#define G_BORDER 3
-#define G_CONTENT 54
-#define WALL_COLOR cv::Scalar(128,128,128)
-#define WAY_COLOR cv::Scalar(255,255,255)
+#define G_BORDER 1
+#define G_CONTENT 62
+#define WALL_COLOR cv::Scalar(19, 69, 139)
+#define WAY_COLOR cv::Scalar(0,216,58)
+#define PATTERN_COLOR cv::Scalar(45,82,190)
 #define KEYWAY_COLOR cv::Scalar(250,206,136)
 #define NEWWALL_COLOR cv::Scalar(0,0,255)
 #define MAP_FONT_COLOR cv::Scalar(0,0,255)
-#define START_COLOR cv::Scalar(0,255,0)
-#define END_COLOR cv::Scalar(255,0,0)
+#define START_COLOR cv::Scalar(255,0,0)
+#define END_COLOR cv::Scalar(0,255,0)
+#define POSNOW_COLOR cv::Scalar(0,0,255)
 //格子颜色
 #define _LEFT 0
 #define _UP 1
@@ -37,6 +41,9 @@
 #define RANDOM_DENSITY 0.72
 #define RANDOM_LSCALE 1
 #define RANDOM_RSCALE 20
+//迷宫生成参数
+#define DELAY_SEC 1000
+//时间宏
 // Operation_Page 对话框
 
 IMPLEMENT_DYNAMIC(Operation_Page, CDialogEx)
@@ -83,6 +90,10 @@ void Operation_Page::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT5, Add_Wall_X);
 	DDX_Control(pDX, IDC_EDIT6, Add_Wall_Y);
 	DDX_Control(pDX, IDC_EDIT7, Add_Wall_Z);
+	DDX_Control(pDX, IDC_EDIT16, POINTLIST_NUM);
+	DDX_Control(pDX, IDC_EDIT14, POINT_END);
+	DDX_Control(pDX, IDC_EDIT15, POINT_START);
+	DDX_Control(pDX, IDC_EDIT17, POINT_DIS);
 }
 void Operation_Page::Info_append(std::string str) {
 	CString now;
@@ -100,18 +111,20 @@ void Operation_Page::Info_clear() {
 }
 std::vector<std::vector<std::vector<double>>> Vmap;//Vector矩阵
 cv::Mat Gmap;//Graphic Mat
-unsigned int Start_x, Start_y, Start_z;
-unsigned int End_x, End_y, End_z;
+std::deque<unsigned int> Start_xs, Start_ys, Start_zs, End_xs, End_ys, End_zs;
 int default_page = 0;
 void Operation_Page::Page_draw_pic(unsigned int page, unsigned int Box_Width, unsigned int Box_Height) {
 	int G_Width = Box_Width * width;
 	int G_Height = Box_Height * height;
 	Gmap = cv::Mat::zeros(cv::Size(G_Height, G_Width), CV_8UC3);
 	std::vector<std::vector<double>> page_Vmap = Vmap[default_page];
+	cv::Mat way_texture = cv::imread("C:/Users/deepd/source/repos/Robot_Path_Planning_MFC_OpenCV/Robot_Path_Planning_MFC_OpenCV/res/azalea_top.png",CV_8UC3);
+
 	for (int i = 0; i < height; i++)
 	{
 		for (int j = 0; j < width; j++) {
 			if (page_Vmap[i][j] > 0) {
+				//绘制可走路
 				cv::rectangle(
 					Gmap,
 					cv::Point(j * Box_Width + G_BORDER, i * Box_Height + G_BORDER),
@@ -129,13 +142,18 @@ void Operation_Page::Page_draw_pic(unsigned int page, unsigned int Box_Width, un
 				);
 			}
 			else {
+				int x = j * Box_Width + G_BORDER;
+				int y = i * Box_Height + G_BORDER;
+				//绘制砖块
 				cv::rectangle(
 					Gmap,
-					cv::Point(j * Box_Width + G_BORDER, i * Box_Height + G_BORDER),
-					cv::Point((j + 1) * Box_Width - G_BORDER, (i + 1) * Box_Height - G_BORDER),
+					cv::Rect(x, y,G_CONTENT,G_CONTENT),
 					WALL_COLOR,
 					-1
 				);
+				for (int k = 0; k < G_CONTENT; k+=16) {
+					cv::rectangle(Gmap, cv::Point(x, y + k), cv::Point(x + G_CONTENT, y + k+10),PATTERN_COLOR,-1);
+				}
 			}
 		}
 	}
@@ -318,6 +336,7 @@ BEGIN_MESSAGE_MAP(Operation_Page, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON10, &Operation_Page::OnBnClicked_ChooseNextPage)
 	ON_BN_CLICKED(IDC_BUTTON3, &Operation_Page::OnBnClicked_AddWall)
 	ON_BN_CLICKED(IDC_BUTTON11, &Operation_Page::OnBnClicked_DisplayResult)
+	ON_BN_CLICKED(IDC_BUTTON12, &Operation_Page::OnBnClicked_AddPoint)
 END_MESSAGE_MAP()
 
 
@@ -363,10 +382,10 @@ int min(int x, int y) {
 void Operation_Page::draw_box_color(unsigned int x, unsigned int y, unsigned int z, cv::Scalar Color) {
 	int Box_Width = (2 * G_BORDER + G_CONTENT);
 	int Box_Height = (2 * G_BORDER + G_CONTENT);
-	int dx1 = x * 60 + G_BORDER;
-	int dy1 = y * 60 + G_BORDER;
-	int dx2 = (x + 1) * 60 - G_BORDER;
-	int dy2 = (y + 1) * 60 - G_BORDER;
+	int dx1 = x * (2*G_BORDER+G_CONTENT) + G_BORDER;
+	int dy1 = y * (2 * G_BORDER + G_CONTENT) + G_BORDER;
+	int dx2 = (x + 1) * (2 * G_BORDER + G_CONTENT) - G_BORDER;
+	int dy2 = (y + 1) * (2 * G_BORDER + G_CONTENT) - G_BORDER;
 	cv::rectangle(
 		Gmap,
 		cv::Point(dx1,dy1),
@@ -375,17 +394,12 @@ void Operation_Page::draw_box_color(unsigned int x, unsigned int y, unsigned int
 		-1
 	);
 }
-std::vector<std::vector<std::vector<unsigned int>>> Out_G, Out_F;
-std::vector<std::vector<std::vector<bool>>> Out_V;
+std::deque<std::vector<std::vector<std::vector<unsigned int>>>> Out_G, Out_F;
+std::deque<std::vector<std::vector<std::vector<bool>>>> Out_V;
 //传参给display用
-void Operation_Page::OnBnClicked_Start_Calc()
+unsigned int points = 0;
+void Operation_Page::OnBnClicked_AddPoint()
 {
-	//第一层 层
-	//第二层 行
-	//第三层 列
-	std::vector<std::vector<std::vector<unsigned int>>> Graph(length,std::vector<std::vector<unsigned int>>(height,std::vector<unsigned int>(width,INF)));
-	std::vector<std::vector<std::vector<unsigned int>>> Face(length, std::vector<std::vector<unsigned int>>(height, std::vector<unsigned int>(width, INF)));
-	std::vector<std::vector<std::vector<bool>>> visited(length, std::vector<std::vector<bool>>(height, std::vector<bool>(width, 0)));
 	CString sx, sy, sz, ex, ey, ez;
 	Start_X_Cedit.GetWindowTextW(sx);
 	Start_Y_Cedit.GetWindowTextW(sy);
@@ -393,128 +407,170 @@ void Operation_Page::OnBnClicked_Start_Calc()
 	End_X_Cedit.GetWindowTextW(ex);
 	End_Y_Cedit.GetWindowTextW(ey);
 	End_Z_Cedit.GetWindowTextW(ez);
+	CString UpgradeTmp;
+
+	POINTLIST_NUM.GetWindowTextW(UpgradeTmp);
+	UpgradeTmp += "\r\n";
+	UpgradeTmp += std::to_string(++points).c_str();
+	POINTLIST_NUM.SetWindowTextW(UpgradeTmp);
+
+	POINT_END.GetWindowTextW(UpgradeTmp);
+	UpgradeTmp += "\r\n";
+	UpgradeTmp += (_T("(") + ex + _T(",") + ey + _T(",") + ez + _T(")"));
+	POINT_END.SetWindowTextW(UpgradeTmp);
+
+	POINT_START.GetWindowTextW(UpgradeTmp);
+	UpgradeTmp += "\r\n";
+	UpgradeTmp += (_T("(") + sx + _T(",") + sy + _T(",") + sz + _T(")"));
+	POINT_START.SetWindowTextW(UpgradeTmp);
+
 	if (sx == _T("") || sy == _T("") || sz == _T("") || ex == _T("") || ey == _T("") || ez == _T("")) {
 		MessageBox(_T("请输入完整的参数！"));
 		return;
 	}
-	//提取点位
-	Start_x = str_to_int(sx);
-	Start_y = str_to_int(sy);
-	Start_z = str_to_int(sz);
-	End_x = str_to_int(ex);
-	End_y = str_to_int(ey);
-	End_z = str_to_int(ez);
+	else {
+		MessageBox(_T("添加起点/终点成功!"));
+	}
+	Start_xs.push_back(str_to_int(sx));
+	Start_ys.push_back(str_to_int(sy));
+	Start_zs.push_back(str_to_int(sz));
+	End_xs.push_back(str_to_int(ex));
+	End_ys.push_back(str_to_int(ey));
+	End_zs.push_back(str_to_int(ez));
+}
+
+void Operation_Page::OnBnClicked_Start_Calc()
+{
+	//第一层 层
+	//第二层 行
+	//第三层 列
+	if (points == 0) {
+		MessageBox(_T("请添加起终点！"));
+		return;
+	}
+	std::vector<std::vector<std::vector<unsigned int>>> Graph(length,std::vector<std::vector<unsigned int>>(height,std::vector<unsigned int>(width,INF)));
+	std::vector<std::vector<std::vector<unsigned int>>> Face(length, std::vector<std::vector<unsigned int>>(height, std::vector<unsigned int>(width, INF)));
+	std::vector<std::vector<std::vector<bool>>> visited(length, std::vector<std::vector<bool>>(height, std::vector<bool>(width, 0)));
+	std::deque<std::vector<std::vector<std::vector<unsigned int>>>> Graphs(points, Graph);
+	std::deque<std::vector<std::vector<std::vector<unsigned int>>>> Faces(points, Face);
+	std::deque<std::vector<std::vector<std::vector<bool>>>> visiteds(points, visited);
 	int x_now, y_now, z_now;
+	POINT_DIS.SetWindowTextW(_T(""));
 	//思路：BFS扩散
-	x_now = Start_x;
-	y_now = Start_y;
-	z_now = Start_z;
-	//std::queue<Node> to;
-	std::priority_queue<Node> to;
-	//to.push(Node(x_now,y_now))
-	to.push(Node(x_now, y_now, z_now, _SET));
-	Graph[Start_z][Start_y][Start_x] = Vmap[Start_z][Start_y][Start_x];
-	int dis;
-	int tx, ty, tz;
-	while (!to.empty()) {
-		tx = to.top().x;
-		ty = to.top().y;
-		tz = to.top().z;
-		draw_box_color(tx, ty, tz, WAY_COLOR);
-		to.pop();
-		if (visited[tz][ty][tx])continue;
-		visited[tz][ty][tx] = true;
-		if (Vmap[tz][ty][tx - 1] > 0 && !visited[tz][ty][tx - 1]) {//LEFT
-			to.push(Node(tx - 1, ty, tz, _SET));
-			draw_box_color(tx - 1, ty, tz, WAY_COLOR);
-		}
-		if (Vmap[tz][ty][tx + 1] > 0 && !visited[tz][ty][tx + 1]) {//RIGHT
-			to.push(Node(tx + 1, ty, tz, _SET));
-			draw_box_color(tx + 1, ty, tz, WAY_COLOR);
-		}
-		if (Vmap[tz][ty - 1][tx] > 0 && !visited[tz][ty - 1][tx - 1]) {//DOWN
-			to.push(Node(tx, ty - 1, tz, _SET));
-			draw_box_color(tx, ty - 1, tz, WAY_COLOR);
-		}
-		if (Vmap[tz][ty + 1][tx] > 0 && !visited[tz][ty + 1][tx + 1]) {//UP
-			to.push(Node(tx, ty + 1, tz, _SET));
-			draw_box_color(tx, ty + 1, tz, WAY_COLOR);
-		}
-		if (Vmap[tz - 1][ty][tx] > 0 && !visited[tz - 1][ty][tx]) {//FRONT
-			to.push(Node(tx, ty, tz - 1, _SET));
-			draw_box_color(tx, ty, tz - 1, WAY_COLOR);
-		}
-		if (Vmap[tz + 1][ty][tx] > 0 && !visited[tz + 1][ty][tx]) {//BACK
-			to.push(Node(tx, ty, tz + 1, _SET));
-			draw_box_color(tx, ty, tz + 1, WAY_COLOR);
-		}
+	for (int i = 0; i < points; i++)
+	{
+		x_now = Start_xs[i];
+		y_now = Start_ys[i];
+		z_now = Start_zs[i];
+		//std::queue<Node> to;
+		std::priority_queue<Node> to;
+		//to.push(Node(x_now,y_now))
+		to.push(Node(x_now, y_now, z_now, _SET));
+		Graphs[i][Start_zs[i]][Start_ys[i]][Start_xs[i]] = Vmap[Start_zs[i]][Start_ys[i]][Start_xs[i]];
+		int dis;
+		int tx, ty, tz;
+		while (!to.empty()) {
+			tx = to.top().x;
+			ty = to.top().y;
+			tz = to.top().z;
+			to.pop();
+			if (visiteds[i][tz][ty][tx])continue;
+			visiteds[i][tz][ty][tx] = true;
+			if (Vmap[tz][ty][tx - 1] > 0 && !visiteds[i][tz][ty][tx - 1]) {//LEFT
+				to.push(Node(tx - 1, ty, tz, _SET));
+			}
+			if (Vmap[tz][ty][tx + 1] > 0 && !visiteds[i][tz][ty][tx + 1]) {//RIGHT
+				to.push(Node(tx + 1, ty, tz, _SET));
+			}
+			if (Vmap[tz][ty - 1][tx] > 0 && !visiteds[i][tz][ty - 1][tx - 1]) {//DOWN
+				to.push(Node(tx, ty - 1, tz, _SET));
+			}
+			if (Vmap[tz][ty + 1][tx] > 0 && !visiteds[i][tz][ty + 1][tx + 1]) {//UP
+				to.push(Node(tx, ty + 1, tz, _SET));
+			}
+			if (Vmap[tz - 1][ty][tx] > 0 && !visiteds[i][tz - 1][ty][tx]) {//FRONT
+				to.push(Node(tx, ty, tz - 1, _SET));
+			}
+			if (Vmap[tz + 1][ty][tx] > 0 && !visiteds[i][tz + 1][ty][tx]) {//BACK
+				to.push(Node(tx, ty, tz + 1, _SET));
+			}
 
-		//到当前点的距离是自己格上下左右四侧dis的最小值+自己格的vmap
-		dis = min(Graph[tz][ty][tx + 1], Graph[tz][ty][tx - 1]);
-		dis = min(dis, Graph[tz][ty - 1][tx]);
-		dis = min(dis, Graph[tz][ty + 1][tx]);
-		dis = min(dis, Graph[tz - 1][ty][tx]);
-		dis = min(dis, Graph[tz + 1][ty][tx]);
-		int face = 0;
-		if (dis == Graph[tz][ty - 1][tx])face = _DOWN;
-		if (dis == Graph[tz][ty + 1][tx])face = _UP;
-		if (dis == Graph[tz][ty][tx - 1])face = _LEFT;
-		if (dis == Graph[tz][ty][tx + 1])face = _RIGHT;
-		if (dis == Graph[tz - 1][ty][tx])face = _BACK;
-		if (dis == Graph[tz + 1][ty][tx])face = _FRONT;
-		if (dis == INF)dis = 0;
-		dis += Vmap[tz][ty][tx];
-		Graph[tz][ty][tx] = dis;
-		Face[tz][ty][tx] = face;
-		Info_append("(" + std::to_string(tx) + "," + std::to_string(ty) + "," + std::to_string(tz) + "), " + std::to_string(Graph[tz][ty][tx]));
+			//到当前点的距离是自己格上下左右四侧dis的最小值+自己格的vmap
+			dis = min(Graphs[i][tz][ty][tx + 1], Graphs[i][tz][ty][tx - 1]);
+			dis = min(dis, Graphs[i][tz][ty - 1][tx]);
+			dis = min(dis, Graphs[i][tz][ty + 1][tx]);
+			dis = min(dis, Graphs[i][tz - 1][ty][tx]);
+			dis = min(dis, Graphs[i][tz + 1][ty][tx]);
+			int face = 0;
+			if (dis == Graphs[i][tz][ty - 1][tx])face = _DOWN;
+			if (dis == Graphs[i][tz][ty + 1][tx])face = _UP;
+			if (dis == Graphs[i][tz][ty][tx - 1])face = _LEFT;
+			if (dis == Graphs[i][tz][ty][tx + 1])face = _RIGHT;
+			if (dis == Graphs[i][tz - 1][ty][tx])face = _BACK;
+			if (dis == Graphs[i][tz + 1][ty][tx])face = _FRONT;
+			if (dis == INF)dis = 0;
+			dis += Vmap[tz][ty][tx];
+			Graphs[i][tz][ty][tx] = dis;
+			Faces[i][tz][ty][tx] = face;
+			Info_append("(" + std::to_string(tx) + "," + std::to_string(ty) + "," + std::to_string(tz) + "), " + std::to_string(Graphs[i][tz][ty][tx]));
 
-		if (tx == End_x && ty == End_y && tz == End_z)break;
+			if (tx == End_xs[i] && ty == End_ys[i] && tz == End_zs[i])break;
 
-	}
-	std::queue<Node> pathlist;
-	pathlist.push(Node(End_x, End_y, End_z, Face[End_z][End_y][End_x]));
-	int fx, fy, fz;
-	fx = End_x;
-	fy = End_y;
-	fz = End_z;
-	Info_clear();
-	std::string ret = std::to_string(Graph[End_z][End_y][End_x]);
-	Info_append("从源点到终点的距离为：" + ret);
-	Info_append("路径：");
-	Info_append("(" + std::to_string(fx) + "," + std::to_string(fy) + "," + std::to_string(fz) + ") ");
-	while (!pathlist.empty()) {
-		int now = pathlist.front().from;
-		draw_box_color(fx, fy, fz, KEYWAY_COLOR);
-		switch (now)
-		{
-		case _DOWN:fy--; break;
-		case _UP:fy++; break;
-		case _LEFT:fx--; break;
-		case _RIGHT:fx++; break;
-		case _BACK:fz--; break;
-		case _FRONT:fz++; break;
-		case _SET:break;
-		default:
-			break;
 		}
-		pathlist.push(Node(fx, fy, fz, Face[fz][fy][fx]));
+		std::deque<Node> pathlist;
+		CString UpgradeTmp;
+		pathlist.push_back(Node(End_xs[i], End_ys[i], End_zs[i], Face[End_zs[i]][End_ys[i]][End_xs[i]]));
+		int fx, fy, fz;
+		fx = End_xs[i];
+		fy = End_ys[i];
+		fz = End_zs[i];
+		int px = fx, py = fy, pz = fz;
+		Info_clear();
+		std::string ret = std::to_string(Graphs[i][End_zs[i]][End_ys[i]][End_xs[i]]);
+		Info_append("从源点到终点的距离为：" + ret);
+		Info_append("路径：");
 		Info_append("(" + std::to_string(fx) + "," + std::to_string(fy) + "," + std::to_string(fz) + ") ");
-		pathlist.pop();
-		if (fx == Start_x && fy == Start_y && fz == Start_z)break;
+		POINT_DIS.GetWindowTextW(UpgradeTmp);
+		UpgradeTmp += "\r\n";
+		UpgradeTmp += (ret).c_str();
+		POINT_DIS.SetWindowTextW(UpgradeTmp);
+		while (!pathlist.empty()) {
+			int now = pathlist.front().from;
+			draw_box_color(fx, fy, fz, POSNOW_COLOR);
+			draw_box_color(px, py, pz, KEYWAY_COLOR);
+			CVMat_to_Pic(Gmap, IDC_STATIC_PIC);
+			Sleep(0.2 * DELAY_SEC);
+			px = fx, py = fy, pz = fz;
+			switch (now)
+			{
+			case _DOWN:fy--; break;
+			case _UP:fy++; break;
+			case _LEFT:fx--; break;
+			case _RIGHT:fx++; break;
+			case _BACK:fz--; break;
+			case _FRONT:fz++; break;
+			case _SET:break;
+			default:
+				break;
+			}
+			pathlist.push_back(Node(fx, fy, fz, Faces[i][fz][fy][fx]));
+			Info_append("(" + std::to_string(fx) + "," + std::to_string(fy) + "," + std::to_string(fz) + ") ");
+			pathlist.pop_front();
+			if (fx == Start_xs[i] && fy == Start_ys[i] && fz == Start_zs[i])break;
+		}
+		draw_box_color(px, py, pz, KEYWAY_COLOR);
+		draw_box_color(Start_xs[i], Start_ys[i], Start_zs[i], START_COLOR);
+		draw_box_color(End_xs[i], End_ys[i], End_zs[i], END_COLOR);
+		CVMat_to_Pic(Gmap, IDC_STATIC_PIC);
 	}
-	draw_box_color(Start_x, Start_y, Start_z, START_COLOR);
-	draw_box_color(End_x, End_y, End_z, END_COLOR);
-	CVMat_to_Pic(Gmap, IDC_STATIC_PIC);
-	Out_G = Graph;
-	Out_V = visited;
-	Out_F = Face;
+	Out_G = Graphs;
+	Out_V = visiteds;
+	Out_F = Faces;
 	GetDlgItem(IDC_BUTTON2)->EnableWindow(true);
 	GetDlgItem(IDC_BUTTON5)->EnableWindow(true);
 	GetDlgItem(IDC_BUTTON11)->EnableWindow(true);
 	return;
 }
-
-
 CString savefolder_filePath;
 
 void Operation_Page::OnBnClicked_Export_CSV()
@@ -677,39 +733,54 @@ void Operation_Page::OnBnClicked_AddWall()
 
 void Operation_Page::OnBnClicked_DisplayResult()
 {
-	std::queue<Node> pathlist;
-	pathlist.push(Node(End_x, End_y, End_z, Out_F[End_z][End_y][End_x]));
-	int fx, fy, fz;
-	fx = End_x;
-	fy = End_y;
-	fz = End_z;
 	Info_clear();
-	std::string ret = std::to_string(Out_G[End_z][End_y][End_x]);
-	Info_append("从源点到终点的距离为：" + ret);
-	Info_append("路径：");
-	Info_append("(" + std::to_string(fx) + "," + std::to_string(fy) + "," + std::to_string(fz) + ") ");
-	while (!pathlist.empty()) {
-		int now = pathlist.front().from;
-		draw_box_color(fx, fy, fz, KEYWAY_COLOR);
-		switch (now)
-		{
-		case _DOWN:fy--; break;
-		case _UP:fy++; break;
-		case _LEFT:fx--; break;
-		case _RIGHT:fx++; break;
-		case _BACK:fz--; break;
-		case _FRONT:fz++; break;
-		case _SET:break;
-		default:
-			break;
-		}
-		pathlist.push(Node(fx, fy, fz, Out_F[fz][fy][fx]));
+	for (int i = 0; i < points; i++)
+	{
+		std::deque<Node> pathlist;
+		pathlist.push_back(Node(End_xs[i], End_ys[i], End_zs[i], Out_F[i][End_zs[i]][End_ys[i]][End_xs[i]]));
+		int fx, fy, fz;
+		fx = End_xs[i];
+		fy = End_ys[i];
+		fz = End_zs[i];
+		int px = fx, py = fy, pz = fz;
+		Info_clear();
+		std::string ret = std::to_string(Out_G[i][End_zs[i]][End_ys[i]][End_xs[i]]);
+		Info_append("从源点到终点的距离为：" + ret);
+		Info_append("路径：");
 		Info_append("(" + std::to_string(fx) + "," + std::to_string(fy) + "," + std::to_string(fz) + ") ");
-		pathlist.pop();
-		if (fx == Start_x && fy == Start_y && fz == Start_z)break;
+		while (!pathlist.empty()) {
+			int now = pathlist.front().from;
+			draw_box_color(fx, fy, fz, POSNOW_COLOR);
+			draw_box_color(px, py, pz, KEYWAY_COLOR);
+			CVMat_to_Pic(Gmap, IDC_STATIC_PIC);
+			Sleep(0.2 * DELAY_SEC);
+			px = fx, py = fy, pz = fz;
+			switch (now)
+			{
+			case _DOWN:fy--; break;
+			case _UP:fy++; break;
+			case _LEFT:fx--; break;
+			case _RIGHT:fx++; break;
+			case _BACK:fz--; break;
+			case _FRONT:fz++; break;
+			case _SET:break;
+			default:
+				break;
+			}
+			pathlist.push_back(Node(fx, fy, fz, Out_F[i][fz][fy][fx]));
+			Info_append("(" + std::to_string(fx) + "," + std::to_string(fy) + "," + std::to_string(fz) + ") ");
+			pathlist.pop_front();
+			if (fx == Start_xs[i] && fy == Start_ys[i] && fz == Start_zs[i])break;
+		}
+		draw_box_color(px, py, pz, KEYWAY_COLOR);
+		draw_box_color(Start_xs[i], Start_ys[i], Start_zs[i], START_COLOR);
+		draw_box_color(End_xs[i], End_ys[i], End_zs[i], END_COLOR);
+		CVMat_to_Pic(Gmap, IDC_STATIC_PIC);
 	}
-	draw_box_color(Start_x, Start_y, Start_z, START_COLOR);
-	draw_box_color(End_x, End_y, End_z, END_COLOR);
-	CVMat_to_Pic(Gmap, IDC_STATIC_PIC);
 	return;
 }
+
+
+
+
+

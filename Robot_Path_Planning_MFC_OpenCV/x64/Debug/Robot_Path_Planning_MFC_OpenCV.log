@@ -1,0 +1,102 @@
+﻿  Operation_Page.cpp
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\GP.h(18,10): warning C4267: “初始化”: 从“size_t”转换到“unsigned int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\GP.h(22,21): warning C4018: “<”: 有符号/无符号不匹配
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\GP.h(31,21): warning C4018: “<”: 有符号/无符号不匹配
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\GP.h(35,22): warning C4018: “<”: 有符号/无符号不匹配
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\GP.h(44,22): warning C4018: “<”: 有符号/无符号不匹配
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\GP.h(55,9): warning C4267: “初始化”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,64): warning C4244: “参数”: 从“double”转换到“_Tp”，可能丢失数据
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,64): warning C4244:         with
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,64): warning C4244:         [
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,64): warning C4244:             _Tp=int
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,64): warning C4244:         ]
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,31): warning C4244: “参数”: 从“double”转换到“_Tp”，可能丢失数据
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,31): warning C4244:         with
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,31): warning C4244:         [
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,31): warning C4244:             _Tp=int
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(138,31): warning C4244:         ]
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(167,25): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(168,23): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(169,20): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(192,25): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(193,23): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(194,20): warning C4267: “=”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(214,13): warning C4244: “参数”: 从“time_t”转换到“unsigned int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(238,35): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(238,20): warning C4267: “参数”: 从“size_t”转换到“int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(349,20): warning C4018: “<”: 有符号/无符号不匹配
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(351,41): warning C4244: “+=”: 从“double”转换到“unsigned int”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(374,9): warning C4005: “INF”: 宏重定义
+  (编译源文件“/Operation_Page.cpp”)
+      C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\GP.h(4,9):
+      参见“INF”的前一个定义
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(460,20): warning C4018: “<”: 有符号/无符号不匹配
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244: “=”: 从“_Ty”转换到“_Ty”，可能丢失数据
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244:         with
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244:         [
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244:             _Ty=double
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244:         ]
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244:         and
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244:         [
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244:             _Ty=std::_Vbase
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(469,96): warning C4244:         ]
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(512,26): warning C4244: “+=”: 从“_Ty”转换到“int”，可能丢失数据
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(512,26): warning C4244:         with
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(512,26): warning C4244:         [
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(512,26): warning C4244:             _Ty=double
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(512,26): warning C4244:         ]
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(542,14): warning C4244: “参数”: 从“double”转换到“DWORD”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(737,20): warning C4018: “<”: 有符号/无符号不匹配
+  (编译源文件“/Operation_Page.cpp”)
+  
+C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\Robot_Path_Planning_MFC_OpenCV\Operation_Page.cpp(756,14): warning C4244: “参数”: 从“double”转换到“DWORD”，可能丢失数据
+  (编译源文件“/Operation_Page.cpp”)
+  
+  Robot_Path_Planning_MFC_OpenCV.vcxproj -> C:\Users\deepd\source\repos\Robot_Path_Planning_MFC_OpenCV\x64\Debug\Robot_Path_Planning_MFC_OpenCV.exe

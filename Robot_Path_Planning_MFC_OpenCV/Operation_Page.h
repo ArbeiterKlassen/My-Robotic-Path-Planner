@@ -60,4 +60,9 @@ public:
 	//网络下载服务
 	bool DownloadFile(const std::string& url, const std::string& filename);
 	afx_msg void OnBnClicked_DisplayResult();
+	CEdit POINTLIST_NUM; //编号
+	CEdit POINT_END; //实际是终点，显示为起点
+	CEdit POINT_START;//实际是起点
+	CEdit POINT_DIS;//距离
+	afx_msg void OnBnClicked_AddPoint();
 };
