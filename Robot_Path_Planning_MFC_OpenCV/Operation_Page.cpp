@@ -7,6 +7,7 @@
 #include "Operation_Page.h"
 #include"GP.h"
 #include"WinINet_Downloader.h"
+#include "CMyButton.h"
 #include<opencv2/highgui/highgui_c.h>
 #include<queue>
 #include<random>
@@ -56,6 +57,143 @@ Operation_Page::Operation_Page(CWnd* pParent /*=nullptr*/)
 Operation_Page::~Operation_Page()
 {
 }
+
+LRESULT Operation_Page::OnNcHitTest(CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
+
+	UINT nHitTest = CDialogEx::OnNcHitTest(point);
+	CRect rect;
+	GetClientRect(&rect);
+	rect.bottom = 70;
+	//函数参数point是相对于屏幕坐标的，需要将其转换为
+	//客户区坐标才能使用PtInRect()，否则会因为坐标的不同使判断失误
+	//rect.left = rect.left + 200;
+	ScreenToClient(&point);
+	if (rect.PtInRect(point))
+	{
+		if (HTCLIENT == nHitTest)
+			nHitTest = HTCAPTION;
+		//如果鼠标点中的是关闭按钮的位置，需要将上一步的设置还原，
+		if (m_rtBtnfile.PtInRect(point) || m_rtBtnSelect.PtInRect(point) || m_rtBtnHelp.PtInRect(point))
+		{
+			nHitTest = HTCLIENT;
+		}
+	}
+	return nHitTest;
+}
+BOOL Operation_Page::OnInitDialog()
+{
+	CDialogEx::OnInitDialog();
+
+	// 将“关于...”菜单项添加到系统菜单中。
+
+	// IDM_ABOUTBOX 必须在系统命令范围内。
+	ASSERT((IDM_ABOUTBOX & 0xFFF0) == IDM_ABOUTBOX);
+	ASSERT(IDM_ABOUTBOX < 0xF000);
+
+	CMenu* pSysMenu = GetSystemMenu(FALSE);
+	if (pSysMenu != nullptr)
+	{
+		BOOL bNameValid;
+		CString strAboutMenu;
+		bNameValid = strAboutMenu.LoadString(IDS_ABOUTBOX);
+		ASSERT(bNameValid);
+		if (!strAboutMenu.IsEmpty())
+		{
+			pSysMenu->AppendMenu(MF_SEPARATOR);
+			pSysMenu->AppendMenu(MF_STRING, IDM_ABOUTBOX, strAboutMenu);
+		}
+	}
+
+	// 设置此对话框的图标。  当应用程序主窗口不是对话框时，框架将自动
+	//  执行此操作
+	SetIcon(m_hIcon, TRUE);			// 设置大图标
+	SetIcon(m_hIcon, FALSE);		// 设置小图标
+
+	// TODO: 在此添加额外的初始化代码
+	//退出按钮绘制
+	CRect rtBtnClo;
+	GetClientRect(&rtBtnClo);
+	rtBtnClo.left = rtBtnClo.right - 20;
+	m_button_exit.SetImagePath(_T(".\\res\\icon_popup_off.png"), _T(".\\res\\icon_popup_off.png"), _T(".\\res\\icon_popup_off.png"));
+	m_button_exit.InitMyButton(rtBtnClo.left, 5, 16, 16, true);
+	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
+}
+
+void Operation_Page::OnPaint()
+{
+	if (IsIconic())
+	{
+		CPaintDC dc(this); // 用于绘制的设备上下文
+
+		SendMessage(WM_ICONERASEBKGND, reinterpret_cast<WPARAM>(dc.GetSafeHdc()), 0);
+
+		// 使图标在工作区矩形中居中
+		int cxIcon = GetSystemMetrics(SM_CXICON);
+		int cyIcon = GetSystemMetrics(SM_CYICON);
+		CRect rect;
+		GetClientRect(&rect);
+		int x = (rect.Width() - cxIcon + 1) / 2;
+		int y = (rect.Height() - cyIcon + 1) / 2;
+
+		// 绘制图标
+		dc.DrawIcon(x, y, m_hIcon);
+	}
+	else
+	{
+		CPaintDC dc(this);
+		CRect rect;
+		//------------------
+		//修改字体
+		HFONT hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);  //获取系统默认GUI字体
+		LOGFONT logfont;
+		GetObject(hFont, sizeof(LOGFONT), &logfont);
+		wcscpy_s(logfont.lfFaceName, L"黑体");//改变为宋体
+		//logfont.lfWeight = 60;
+		logfont.lfHeight = 15;
+		HFONT hNewFont = NULL;
+		hNewFont = CreateFontIndirect(&logfont); //改变系统默认的字体，设为宋体，创建了一个新的HFONT 
+		HFONT loldfont = (HFONT)(SelectObject(dc, hNewFont));//选上新创建的这个，返回的是旧的
+		CRect tmprect;
+		GetClientRect(&rect);
+		//rect.bottom = 60;
+		rect.bottom *= 0.1;
+		/*int nCount = 165 - 115 + 186 - 158 + 190 - 115;
+		int nIncrecs = (rect.right - rect.left) / nCount;*/
+		dc.FillSolidRect(rect, RGB(45, 51, 60));
+		dc.SetBkMode(TRANSPARENT);
+	}
+}
+
+HBRUSH Operation_Page::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	// TODO:  在此更改 DC 的任何特性
+
+	// TODO:  如果默认的不是所需画笔，则返回另一个画笔
+	switch (nCtlColor)
+	{
+	case CTLCOLOR_DLG:
+		HBRUSH aBrush;
+		aBrush = CreateSolidBrush(RGB(30, 34, 39));
+		hbr = aBrush;
+		break;
+	}
+
+	if (nCtlColor == CTLCOLOR_STATIC)
+	{
+		if (pWnd->GetDlgCtrlID() == IDC_STATIC)//如果是静态编辑框
+		{
+			pDC->SetTextColor(RGB(255, 255, 255));//修改字体的颜色
+			pDC->SetBkColor(RGB(30, 34, 39));//把字体的背景变成透明的
+		}
+	}
+	return hbr;
+}
+
+
 void Operation_Page::init(int _m, CString _path, CString _ip, CString _port, int _width, int _height, int _length) {
 	this->mode = _m;
 	this->path = _path;
@@ -94,7 +232,10 @@ void Operation_Page::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT14, POINT_END);
 	DDX_Control(pDX, IDC_EDIT15, POINT_START);
 	DDX_Control(pDX, IDC_EDIT17, POINT_DIS);
+	DDX_Control(pDX, IDC_BUTTON13, m_button_exit);
 }
+
+
 void Operation_Page::Info_append(std::string str) {
 	CString now;
 	CString cstr = CA2T(str.c_str());
@@ -337,6 +478,10 @@ BEGIN_MESSAGE_MAP(Operation_Page, CDialogEx)
 	ON_BN_CLICKED(IDC_BUTTON3, &Operation_Page::OnBnClicked_AddWall)
 	ON_BN_CLICKED(IDC_BUTTON11, &Operation_Page::OnBnClicked_DisplayResult)
 	ON_BN_CLICKED(IDC_BUTTON12, &Operation_Page::OnBnClicked_AddPoint)
+	ON_BN_CLICKED(IDC_BUTTON13, &Operation_Page::OnBnClickedButton13)
+	ON_WM_NCHITTEST()
+	ON_WM_PAINT()
+	ON_WM_CTLCOLOR()
 END_MESSAGE_MAP()
 
 
@@ -784,3 +929,9 @@ void Operation_Page::OnBnClicked_DisplayResult()
 
 
 
+
+
+void Operation_Page::OnBnClickedButton13()
+{
+	CDialog::OnCancel();
+}

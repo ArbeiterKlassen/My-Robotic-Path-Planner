@@ -186,9 +186,11 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="CMyButton.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Operation_Page.h" />
     <ClInclude Include="pch.h" />
+    <ClInclude Include="PerlinNoise.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Robot_Path_Planning_MFC_OpenCV.h" />
     <ClInclude Include="Robot_Path_Planning_MFC_OpenCVDlg.h" />
@@ -197,6 +199,7 @@
     <ClInclude Include="WinINet_Downloader.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CMyButton.cpp" />
     <ClCompile Include="Operation_Page.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>

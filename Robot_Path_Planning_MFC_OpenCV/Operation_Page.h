@@ -2,7 +2,7 @@
 #include "afxdialogex.h"
 #include "Robot_Path_Planning_MFC_OpenCV.h"
 #include<opencv2/opencv.hpp>
-
+#include "CMyButton.h"
 // Operation_Page 对话框
 
 class Operation_Page : public CDialogEx
@@ -19,8 +19,23 @@ public:
 #endif
 
 protected:
+	HICON m_hIcon;
+
+	// 生成的消息映射函数
+	virtual BOOL OnInitDialog();
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV 支持
+	afx_msg LRESULT OnNcHitTest(CPoint point);
+	afx_msg void OnPaint();
+	afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
 public:
+	CBrush m_brush;
+	CRect m_rtBtnfile;
+	CRect m_rtBtnSelect;
+	CRect m_rtBtnHelp;
+	CMyButton m_btnExit;
+	CMyButton m_btnMax;
+	CMyButton m_btnMin;
+
 	int mode = 0;
 	CString url = _T(""), port = _T(""), ip = _T(""), path = _T("");
 	int width = 0, length = 0, height = 0;
@@ -65,4 +80,6 @@ public:
 	CEdit POINT_START;//实际是起点
 	CEdit POINT_DIS;//距离
 	afx_msg void OnBnClicked_AddPoint();
+	CMyButton m_button_exit;
+	afx_msg void OnBnClickedButton13();
 };

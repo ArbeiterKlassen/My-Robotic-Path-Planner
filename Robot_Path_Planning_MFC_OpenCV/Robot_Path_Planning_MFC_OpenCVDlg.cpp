@@ -10,6 +10,7 @@
 #include "Resource.h"
 #include <opencv2/opencv.hpp>
 #include "Operation_Page.h"
+#include "CMyButton.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -51,7 +52,30 @@ END_MESSAGE_MAP()
 
 // CRobotPathPlanningMFCOpenCVDlg 对话框
 
+LRESULT CRobotPathPlanningMFCOpenCVDlg::OnNcHitTest(CPoint point)
+{
+	// TODO: 在此添加消息处理程序代码和/或调用默认值
 
+	UINT nHitTest = CDialogEx::OnNcHitTest(point);
+	CRect rect;
+	GetClientRect(&rect);
+	rect.bottom = 70;
+	//函数参数point是相对于屏幕坐标的，需要将其转换为
+	//客户区坐标才能使用PtInRect()，否则会因为坐标的不同使判断失误
+	//rect.left = rect.left + 200;
+	ScreenToClient(&point);
+	if (rect.PtInRect(point))
+	{
+		if (HTCLIENT == nHitTest)
+			nHitTest = HTCAPTION;
+		//如果鼠标点中的是关闭按钮的位置，需要将上一步的设置还原，
+		if (m_rtBtnfile.PtInRect(point) || m_rtBtnSelect.PtInRect(point) || m_rtBtnHelp.PtInRect(point))
+		{
+			nHitTest = HTCLIENT;
+		}
+	}
+	return nHitTest;
+}
 
 CRobotPathPlanningMFCOpenCVDlg::CRobotPathPlanningMFCOpenCVDlg(CWnd* pParent /*=nullptr*/)
 	: CDialogEx(IDD_ROBOT_PATH_PLANNING_MFC_OPENCV_DIALOG, pParent)
@@ -68,22 +92,25 @@ void CRobotPathPlanningMFCOpenCVDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT1, Import_Local_File);
 	DDX_Control(pDX, IDC_EDIT2, Import_URL_File_URL);
 	DDX_Control(pDX, IDC_EDIT6, Import_URL_File_Port);
+	DDX_Control(pDX, IDC_BUTTON8, m_button_exit);
 }
 
 BEGIN_MESSAGE_MAP(CRobotPathPlanningMFCOpenCVDlg, CDialogEx)
 	ON_WM_SYSCOMMAND()
+	ON_WM_CTLCOLOR()
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	ON_WM_NCHITTEST()
 	ON_BN_CLICKED(IDC_BUTTON4, &CRobotPathPlanningMFCOpenCVDlg::OnBnClicked_RandomSummon)
 	ON_BN_CLICKED(IDC_BUTTON1, &CRobotPathPlanningMFCOpenCVDlg::OnBnClicked_Start_Import_Local)
 	ON_BN_CLICKED(IDC_BUTTON2, &CRobotPathPlanningMFCOpenCVDlg::OnBnClicked_Start_Import_URL)
 	ON_BN_CLICKED(IDC_BUTTON3, &CRobotPathPlanningMFCOpenCVDlg::OnBnClicked_Confirm_Start)
 	ON_BN_CLICKED(IDC_BUTTON6, &CRobotPathPlanningMFCOpenCVDlg::OnBnClicked_Rechoose_File)
+	ON_BN_CLICKED(IDC_BUTTON8, &CRobotPathPlanningMFCOpenCVDlg::OnBnClickedButton8)
 END_MESSAGE_MAP()
 
 
 // CRobotPathPlanningMFCOpenCVDlg 消息处理程序
-
 BOOL CRobotPathPlanningMFCOpenCVDlg::OnInitDialog()
 {
 	CDialogEx::OnInitDialog();
@@ -114,9 +141,16 @@ BOOL CRobotPathPlanningMFCOpenCVDlg::OnInitDialog()
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
 	// TODO: 在此添加额外的初始化代码
-
+	//退出按钮绘制
+	CRect rtBtnClo;
+	GetClientRect(&rtBtnClo);
+	rtBtnClo.left = rtBtnClo.right - 20;
+	m_button_exit.SetImagePath(_T(".\\res\\icon_popup_off.png"), _T(".\\res\\icon_popup_off.png"), _T(".\\res\\icon_popup_off.png"));
+	m_button_exit.InitMyButton(rtBtnClo.left, 5, 16, 16, true);
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
+
+
 
 void CRobotPathPlanningMFCOpenCVDlg::OnSysCommand(UINT nID, LPARAM lParam)
 {
@@ -156,8 +190,56 @@ void CRobotPathPlanningMFCOpenCVDlg::OnPaint()
 	}
 	else
 	{
-		CDialogEx::OnPaint();
+		CPaintDC dc(this);
+		CRect rect;
+		//------------------
+		//修改字体
+		HFONT hFont = (HFONT)GetStockObject(DEFAULT_GUI_FONT);  //获取系统默认GUI字体
+		LOGFONT logfont;
+		GetObject(hFont, sizeof(LOGFONT), &logfont);
+		wcscpy_s(logfont.lfFaceName, L"黑体");//改变为宋体
+		//logfont.lfWeight = 60;
+		logfont.lfHeight = 15;
+		HFONT hNewFont = NULL;
+		hNewFont = CreateFontIndirect(&logfont); //改变系统默认的字体，设为宋体，创建了一个新的HFONT 
+		HFONT loldfont = (HFONT)(SelectObject(dc, hNewFont));//选上新创建的这个，返回的是旧的
+		CRect tmprect;
+		GetClientRect(&rect);
+		//rect.bottom = 60;
+		rect.bottom *= 0.1;
+		/*int nCount = 165 - 115 + 186 - 158 + 190 - 115;
+		int nIncrecs = (rect.right - rect.left) / nCount;*/
+		dc.FillSolidRect(rect, RGB(45, 51, 60));
+		dc.SetBkMode(TRANSPARENT);
 	}
+}
+
+HBRUSH CRobotPathPlanningMFCOpenCVDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
+{
+	HBRUSH hbr = CDialogEx::OnCtlColor(pDC, pWnd, nCtlColor);
+
+	// TODO:  在此更改 DC 的任何特性
+
+	// TODO:  如果默认的不是所需画笔，则返回另一个画笔
+	switch (nCtlColor)
+	{
+	case CTLCOLOR_DLG:
+		HBRUSH aBrush;
+		aBrush = CreateSolidBrush(RGB(30, 34, 39));
+		hbr = aBrush;
+		break;
+	}
+
+	if (nCtlColor == CTLCOLOR_STATIC)
+	{
+		if (pWnd->GetDlgCtrlID() == IDC_STATIC)//如果是静态编辑框
+		{
+			pDC->SetTextColor(RGB(255, 255, 255));//修改字体的颜色
+			pDC->SetBkColor(RGB(30, 34, 39));//把字体的背景变成透明的
+			return (HBRUSH)::GetStockObject(NULL_BRUSH);
+		}
+	}
+	return hbr;
 }
 
 //当用户拖动最小化窗口时系统调用此函数取得光标
@@ -326,4 +408,10 @@ void CRobotPathPlanningMFCOpenCVDlg::OnBnClicked_Rechoose_File()
 	Import_URL_File_URL.SetWindowTextW(_T(""));
 	Import_URL_File_Port.SetWindowTextW(_T(""));
 	confirm_mode = 0;
+}
+
+
+void CRobotPathPlanningMFCOpenCVDlg::OnBnClickedButton8()
+{
+	CDialog::OnCancel();
 }
